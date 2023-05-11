@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_push_notifications/firebase_options.dart';
 
 class PushNotificationProvider extends ChangeNotifier{
 
@@ -12,13 +13,12 @@ class PushNotificationProvider extends ChangeNotifier{
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerState = GlobalKey<ScaffoldMessengerState>();
 
   Future<void> initializeApp() async {
-    // Push Notifications
-    await Firebase.initializeApp();
-    // await requestPermission();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform
+    );
 
     token = await FirebaseMessaging.instance.getToken();
 
-    // Handlers
     FirebaseMessaging.onMessage.listen((event) {
       notificationMessage =  event.notification!.title!;
       notifyListeners();
@@ -28,11 +28,13 @@ class PushNotificationProvider extends ChangeNotifier{
           )
         );
     });
+    
     FirebaseMessaging.onMessageOpenedApp.listen((event) {
       notificationMessage =  event.notification!.title!;
       notifyListeners();
       navigatorKey.currentState?.pushNamed("message_page", arguments: notificationMessage);
     },);
+
     FirebaseMessaging.instance.getInitialMessage().then((value){
       if(value != null){
         print("🍁initialMessage: ${value.data}");
